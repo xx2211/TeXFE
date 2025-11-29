@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QTextEdit, QPushButton,
-                             QHBoxLayout, QApplication)
-from PyQt6.QtCore import Qt, QTimer, QUrl
+import json
+from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QPushButton, QHBoxLayout)
+from PyQt6.QtCore import Qt, QUrl
 from PyQt6.QtWebEngineWidgets import QWebEngineView
+from PyQt6.QtWebEngineCore import QWebEngineSettings
 import pyperclip
-from ..config import AppConfig  # ✅ 引入配置
+from ..config import AppConfig
 
 
 class ResultWindow(QWidget):
@@ -11,24 +12,24 @@ class ResultWindow(QWidget):
         super().__init__()
         self.setWindowTitle("FoxTeX 识别结果")
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
-        self.resize(500, 400)
-
-        # ✅ 获取配置
+        self.resize(500, 450)
         self.cfg = AppConfig()
 
         layout = QVBoxLayout()
 
+        # 1. 纯 WebView 界面
         self.webview = QWebEngineView()
 
-        self.webview.setStyleSheet("background-color: white; border: 1px solid #ccc;")
-        self.webview.setMinimumHeight(150)
-        # 初始化
-        self.webview.setHtml(self._get_html_template(""))
+        # 开启本地文件访问权限 (加载 index.html 需要)
+        settings = self.webview.settings()
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        settings.setAttribute(QWebEngineSettings.WebAttribute.LocalContentCanAccessRemoteUrls, True)
+        # 禁用右键菜单
+        self.webview.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+
         layout.addWidget(self.webview)
 
-        self.text_edit = QTextEdit()
-        layout.addWidget(self.text_edit)
-
+        # 2. 底部按钮区 (保留复制和关闭按钮)
         btn_layout = QHBoxLayout()
         self.btn_copy = QPushButton("复制 (Enter)")
         self.btn_copy.clicked.connect(self.copy_and_close)
@@ -40,88 +41,30 @@ class ResultWindow(QWidget):
 
         self.setLayout(layout)
 
-        self.render_timer = QTimer()
-        self.render_timer.setSingleShot(True)
-        self.render_timer.interval = 300
-        self.render_timer.timeout.connect(self.do_render)
-
-        self.text_edit.textChanged.connect(self.on_text_changed)
-
-    def _get_html_template(self, latex_code):
-        print("-" * 40)
-        print("🔍 [DEBUG] 开始追踪 LaTeX 字符串变化:")
-        # 1. 打印原始输入
-        print(f"1️⃣ 原始输入: {repr(latex_code)}")
-
-        # 读取 JS 内容 (这一步没问题，不打印了)
-        mathjax_path = self.cfg.MODEL_PATHS['mathjax']
-        try:
-            with open(mathjax_path, "r", encoding="utf-8") as f:
-                mathjax_content = f.read()
-        except Exception as e:
-            return f"<h1>Error: {e}</h1>"
-
-
-        html = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body {{
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    height: 100vh;
-                    margin: 0;
-                    overflow: hidden;
-                    background-color: #ffffff;
-                }}
-                mjx-container {{ font-size: 2.5em !important; }}
-            </style>
-
-            <script>
-            window.MathJax = {{
-              tex: {{ inlineMath: [['$', '$']] }},
-              svg: {{ fontCache: 'global' }},
-              startup: {{ typeset: true }}
-            }};
-            </script>
-            <script>
-            {mathjax_content}
-            </script>
-        </head>
-        <body>
-            $${latex_code}$$
-        </body>
-        </html>
-        """
-        return html
+        # ✅ 加载本地 HTML 文件
+        index_path = self.cfg.TEMPLATES_DIR / "index.html"
+        self.webview.setUrl(QUrl.fromLocalFile(str(index_path)))
 
     def set_content(self, latex_code):
-        self.text_edit.blockSignals(True)
-        self.text_edit.setText(latex_code)
-        self.text_edit.blockSignals(False)
-        self.do_render()
         self.showNormal()
         self.activateWindow()
 
-    def on_text_changed(self):
-        self.render_timer.start(300)
-
-    def do_render(self):
-        latex = self.text_edit.toPlainText().strip()
-        if not latex:
-            return
-
-        html_content = self._get_html_template(latex)
-
-        self.webview.setHtml(html_content)
+        # 等待页面加载完成后注入数据
+        # 如果页面已经加载过，直接注入
+        # 使用 json.dumps 自动处理转义字符，非常安全
+        js_code = f"setContent({json.dumps(latex_code)});"
+        self.webview.page().runJavaScript(js_code)
 
     def copy_and_close(self):
-        latex = self.text_edit.toPlainText()
-        pyperclip.copy(latex)
-        self.hide()
+        # 异步获取 JS 里的内容
+        def callback(result):
+            if result:
+                pyperclip.copy(result)
+                print(f"✅ 已复制: {result}")
+            self.hide()
+
+        # 执行 JS 获取当前文本框的值
+        self.webview.page().runJavaScript("getContent();", callback)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:

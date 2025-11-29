@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: sans-serif;
+            background-color: white;
+            overflow: hidden;
+        }
+
+        /* 上半部分：渲染区 */
+        #render-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            border-bottom: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        /* MathJax 容器样式 */
+        mjx-container {
+            font-size: 200% !important; /* 调整显示大小 */
+            outline: none;
+        }
+
+        /* 下半部分：输入区 */
+        #input-area {
+            height: 120px;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #f9f9f9;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            resize: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: Consolas, Monospace;
+            font-size: 14px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #0078d7;
+        }
+    </style>
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['\\[', '\\]']],
+                packages: {'[+]': ['base', 'ams', 'noundefined']}
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                typeset: false // 手动触发渲染
+            }
+        };
+    </script>
+
+    <script src="mathjax.js"></script>
+</head>
+<body>
+
+    <div id="render-container">
+        <div id="math-output"></div>
+    </div>
+
+    <div id="input-area">
+        <textarea id="latex-input" placeholder="等待识别..."></textarea>
+    </div>
+
+    <script>
+        const inputEl = document.getElementById('latex-input');
+        const outputEl = document.getElementById('math-output');
+
+        // 核心渲染函数
+        function render() {
+            const latex = inputEl.value.trim();
+            if (!latex) {
+                outputEl.innerHTML = "";
+                return;
+            }
+
+            // 构造 HTML：使用 \[ ... \] 强制展示模式
+            outputEl.innerHTML = '\\[ ' + latex + ' \\]';
+
+            // 通知 MathJax 重新渲染
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([outputEl]).catch((err) => console.log(err));
+            }
+        }
+
+        // 监听输入，实时渲染
+        inputEl.addEventListener('input', render);
+
+        // ✅ Python 调用的接口：设置内容
+        function setContent(latex) {
+            inputEl.value = latex;
+            render();
+        }
+
+        // ✅ Python 调用的接口：获取内容
+        function getContent() {
+            return inputEl.value;
+        }
+    </script>
+</body>
+</html>

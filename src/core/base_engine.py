@@ -6,7 +6,7 @@ from pathlib import Path
 class BaseEngine(ABC):
 
     @abstractmethod
-    def load_model(self, assets_dir: Path):
+    def load_model(self, models_dir: Path):
         """加载模型"""
         pass
 

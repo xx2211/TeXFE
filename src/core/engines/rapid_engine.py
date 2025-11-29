@@ -7,15 +7,15 @@ class RapidEngine(BaseEngine):
         self.model = None
         # 我们可以选择在初始化时自动加载
         # 也可以留给外部显式调用。为了 MVP 简单，我们这里直接调用。
-        self.load_model(config.ASSETS_DIR)
+        self.load_model(config.MODELS_DIR)
 
-    def load_model(self, assets_dir):
-        print(f"正在加载模型，路径: {assets_dir}")
+    def load_model(self, models_dir):
+        print(f"正在加载模型，路径: {models_dir}")
         self.model = LaTeXOCR(
-            image_resizer_path=str(assets_dir / 'image_resizer.onnx'),
-            encoder_path=str(assets_dir / 'encoder.onnx'),
-            decoder_path=str(assets_dir / 'decoder.onnx'),
-            tokenizer_json=str(assets_dir / 'tokenizer.json')
+            image_resizer_path=str(models_dir / 'image_resizer.onnx'),
+            encoder_path=str(models_dir / 'encoder.onnx'),
+            decoder_path=str(models_dir / 'decoder.onnx'),
+            tokenizer_json=str(models_dir / 'tokenizer.json')
         )
 
     def recognize(self, image_data: bytes) -> str:

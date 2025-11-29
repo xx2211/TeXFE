@@ -154,9 +154,9 @@ class SnipperManager(QObject):
             return
 
         # ✅ 【调试复活】保存图片看看对不对
-        debug_path = "debug_final_capture.png"
+        debug_path = r"temp/debug_final_capture.png"
         pixmap.save(debug_path)
-        print(f"【调试】截图已保存到项目根目录: {debug_path}")
+        print(f"【调试】截图已保存到temp目录: {debug_path}")
 
         # 3. 转 bytes 发射
         self._emit_bytes(pixmap)
