@@ -2,17 +2,19 @@ from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtCore import QCoreApplication
 
+from src.ui.icon import get_fox_icon
+
 
 class FoxTray(QSystemTrayIcon):
     def __init__(self, parent=None, on_capture=None):
         # 使用系统默认图标（或者你自己做一个 .ico 放 assets）
         # 这里为了省事，用了一个标准图标
-        super().__init__(QIcon.fromTheme("edit-copy"), parent)
+        super().__init__(get_fox_icon(), parent)
 
         self.on_capture = on_capture
 
         # 设置提示文字
-        self.setToolTip("FoxTeX - 数学公式截图")
+        self.setToolTip("TeXFE - 数学公式截图")
 
         # 创建右键菜单
         self.menu = QMenu()

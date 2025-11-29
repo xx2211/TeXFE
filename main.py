@@ -75,7 +75,7 @@ def main():
     except ImportError:
         print("⚠️ 警告：keyboard 库需要 root/管理员权限才能在某些系统运行全局热键。")
 
-    print(f"🚀 FoxTeX 已启动！按 {cfg.HOTKEY} 截图，托盘图标已就绪。")
+    print(f"🚀 TeXFE 已启动！按 {cfg.HOTKEY} 截图，托盘图标已就绪。")
     sys.exit(app.exec())
 
 

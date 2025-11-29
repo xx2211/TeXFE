@@ -11,7 +11,7 @@ class ResultWindow(QWidget):
     def __init__(self):
         super().__init__()
         # 标准窗口
-        self.setWindowTitle("FoxTeX")
+        self.setWindowTitle("TeXFE")
         self.resize(600, 400)
         self.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint)
 
