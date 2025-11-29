@@ -1,0 +1,5 @@
+pyqt6~=6.10.0
+onnxruntime~=1.23.2
+numpy~=1.26.4
+pyperclip~=1.11.0
+keyboard~=0.13.5
