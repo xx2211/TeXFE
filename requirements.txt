@@ -1,5 +1,14 @@
-pyqt6~=6.10.0
-onnxruntime~=1.23.2
-numpy~=1.26.4
-pyperclip~=1.11.0
-keyboard~=0.13.5
+# --- GUI ---
+PyQt6
+keyboard
+pyperclip
+
+# --- AI Core ---
+numpy
+opencv-python
+onnxruntime
+rapid_latex_ocr
+
+# --- Utils (隐式依赖显式化) ---
+requests
+tqdm
