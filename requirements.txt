@@ -1,5 +1,6 @@
 # --- GUI ---
 PyQt6
+PyQt6-WebEngine
 keyboard
 pyperclip
 
@@ -12,3 +13,4 @@ rapid_latex_ocr
 # --- Utils (隐式依赖显式化) ---
 requests
 tqdm
+

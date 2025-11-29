@@ -30,6 +30,8 @@ class AppConfig:
             'encoder': str(self.ASSETS_DIR / 'encoder.onnx'),
             'decoder': str(self.ASSETS_DIR / 'decoder.onnx'),
             'tokenizer': str(self.ASSETS_DIR / 'tokenizer.json'),
+            # ✅ 新增：把 MathJax 也纳管进来
+            'mathjax': str(self.ASSETS_DIR / 'mathjax.js'),
         }
         # 绕过 frozen=True 限制赋值
         object.__setattr__(self, 'MODEL_PATHS', paths)

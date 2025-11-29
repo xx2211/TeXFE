@@ -1,12 +1,11 @@
 import sys
-import threading
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
 from PyQt6.QtWidgets import QApplication
 from src.config import AppConfig
 from src.core.factory import create_engine  # ✅ 加这句
 from src.ui.snipper import SnipperManager
-import pyperclip
 import keyboard  # ✅ 引入键盘库
+from src.ui.result_window import ResultWindow # ✅ 引入新窗口
 
 
 # ✅ 定义一个信号桥，用于跨线程通讯
@@ -38,6 +37,8 @@ def main():
 
     # 2. 创建截图管理器 (原来是 Snipper)
     snipper_manager = SnipperManager()  # 改名了
+    # ✅ 创建 ResultWindow (长生命周期)
+    result_window = ResultWindow()
 
     # 3. 创建热键桥梁
     bridge = HotkeyBridge()
@@ -49,21 +50,21 @@ def main():
             latex = engine.recognize(img_bytes)
             print(f"📝 识别结果: {latex}")
             if latex and "错误" not in latex:
-                pyperclip.copy(latex)
-                print("✅ 已复制到剪贴板")
+                # pyperclip.copy(latex)
+                # print("✅ 已复制到剪贴板")
+                # ❌ 以前是直接复制：pyperclip.copy(latex)
+                # ✅ 现在是显示浮窗：
+                # 我们通过 bridge 信号来显示窗口，确保线程安全
+                # (这里简单起见，因为 callback 是在主线程触发的，直接调也没事)
+                result_window.set_content(latex)
         except Exception as e:
             print(f"❌ 流程异常: {e}")
 
-    # 5. 信号连接
-    # snipper.captured.connect(on_capture_finished)
     # 5. 信号连接
     # 连接管理器的信号
     snipper_manager.captured.connect(on_capture_finished)
 
     # 【关键】连接桥梁信号到 UI 显示槽
-    # 当 bridge 发出 show_signal 时，主线程执行 snipper.show
-    # bridge.show_signal.connect(snipper.show)
-    # 【关键变化】桥梁连接到管理器的 start 方法
     bridge.show_signal.connect(snipper_manager.start)
 
     # 6. 设置全局热键回调 (运行在子线程)
