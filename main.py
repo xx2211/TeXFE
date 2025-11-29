@@ -10,7 +10,7 @@ from src.ui.tray import FoxTray
 
 # 引入两个干净的 Source
 from src.sources.screen_source import SnipperManager  # 这个本质上就是 ScreenSource
-from src.sources.mobile import MobileSource  # ✅ 新写的封装类
+from src.sources.mobile_source import MobileSource  # ✅ 新写的封装类
 
 import keyboard
 import pyperclip
