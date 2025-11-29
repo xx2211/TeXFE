@@ -1,81 +1,85 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
-from PyQt6.QtGui import QCursor  # 获取鼠标位置
+from PyQt6.QtGui import QCursor
+
 from src.config import AppConfig
 from src.core.factory import create_engine
-from src.ui.snipper import SnipperManager
 from src.ui.result_window import ResultWindow
-from src.ui.tray import FoxTray  # ✅ 引入托盘
-import keyboard
+from src.ui.tray import FoxTray
 
-# ✅ 定义一个信号桥，用于跨线程通讯
+# 引入两个干净的 Source
+from src.sources.screen_source import SnipperManager  # 这个本质上就是 ScreenSource
+from src.sources.mobile import MobileSource  # ✅ 新写的封装类
+
+import keyboard
+import pyperclip
+
+
+# 信号桥（防死锁）
 class HotkeyBridge(QObject):
-    show_signal = pyqtSignal()
+    trigger_snipper = pyqtSignal()
+    trigger_mobile = pyqtSignal()
+
 
 def main():
+    # ... (HighDPI 设置不变) ...
     if hasattr(Qt, 'AA_EnableHighDpiScaling'):
         QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
     app = QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)  # 关键：关了窗口不退程序
+    app.setQuitOnLastWindowClosed(False)
 
     cfg = AppConfig()
 
+    # --- 1. 初始化核心 ---
     try:
         engine = create_engine("rapid", cfg)
     except Exception as e:
-        print(f"❌ 引擎初始化失败: {e}")
+        print(f"❌ 引擎挂了: {e}")
         return
 
-
-    snipper_manager = SnipperManager()
-    result_window = ResultWindow()  # ✅ 创建新的浮窗
-
-    def start_capture():
-        snipper_manager.start()
-
+    result_window = ResultWindow()
     bridge = HotkeyBridge()
 
+    # --- 2. 初始化输入源 (Sources) ---
+    screen_source = SnipperManager()
+    mobile_source = MobileSource(cfg)
 
-    # ✅ 创建托盘图标，并绑定截图功能
-    tray = FoxTray(on_capture=start_capture)
-
-    def on_capture_finished(img_bytes):
-        print("⚡ 识别中...")
+    # --- 3. 统一的处理逻辑 (Sink) ---
+    def process_image(img_bytes):
+        print("⚡ 收到最终图片，开始识别...")
         try:
             latex = engine.recognize(img_bytes)
-
             if latex and "错误" not in latex:
-                # ✅ 获取当前鼠标位置，让浮窗出现在鼠标旁边
-                # mouse_pos = QCursor.pos()
+                pyperclip.copy(latex)
                 result_window.set_content(latex)
-
         except Exception as e:
-            print(f"❌ 异常: {e}")
+            print(f"❌ 识别异常: {e}")
 
-    snipper_manager.captured.connect(on_capture_finished)
+    # --- 4. 连线 (Wiring) ---
 
-    # 5. 信号连接
-    # 连接管理器的信号
-    snipper_manager.captured.connect(on_capture_finished)
+    # 无论是截图来的，还是手机修完图来的，都进同一个处理函数
+    screen_source.captured.connect(process_image)
+    mobile_source.captured.connect(process_image)
 
-    # 【关键】连接桥梁信号到 UI 显示槽
-    bridge.show_signal.connect(snipper_manager.start)
+    # 信号桥 -> 启动源
+    bridge.trigger_snipper.connect(screen_source.start)
+    bridge.trigger_mobile.connect(mobile_source.start)
 
-    # 6. 设置全局热键回调 (运行在子线程)
-    def on_hotkey():
-        # 千万别直接调 snipper.show()，会崩！
-        # 要通过信号通知主线程
-        bridge.show_signal.emit()
+    # --- 5. 托盘与热键 ---
 
-    # 注册热键 (Alt+Q)
-    try:
-        keyboard.add_hotkey(cfg.HOTKEY, on_hotkey)
-    except ImportError:
-        print("⚠️ 警告：keyboard 库需要 root/管理员权限才能在某些系统运行全局热键。")
+    # 托盘只负责发信号
+    tray = FoxTray(
+        on_capture=lambda: bridge.trigger_snipper.emit(),
+        on_mobile=lambda: bridge.trigger_mobile.emit()
+    )
 
-    print(f"🚀 TeXFE 已启动！按 {cfg.HOTKEY} 截图，托盘图标已就绪。")
+    # 键盘监听 (后台线程)
+    keyboard.add_hotkey(cfg.HOTKEY_SNIP, lambda: bridge.trigger_snipper.emit())
+    keyboard.add_hotkey(cfg.HOTKEY_MOBILE, lambda: bridge.trigger_mobile.emit())
+
+    print(f"🚀 TeXFE 启动成功")
     sys.exit(app.exec())
 
 

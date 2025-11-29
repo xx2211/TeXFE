@@ -20,7 +20,8 @@ class AppConfig:
 
     # ✅ 【补上了这一行】 热键配置
     # 格式参考 keyboard 库： "alt+q", "ctrl+shift+a" 等
-    HOTKEY: str = "alt+q"
+    HOTKEY_SNIP: str = "alt+q"
+    HOTKEY_MOBILE = "alt+m"
 
 
 '''

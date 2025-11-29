@@ -6,18 +6,22 @@ from src.ui.icon import get_fox_icon
 
 
 class FoxTray(QSystemTrayIcon):
-    def __init__(self, parent=None, on_capture=None):
-        # 使用系统默认图标（或者你自己做一个 .ico 放 assets）
-        # 这里为了省事，用了一个标准图标
+    def __init__(self, parent=None, on_capture=None, on_mobile=None):
         super().__init__(get_fox_icon(), parent)
 
         self.on_capture = on_capture
+        self.on_mobile = on_mobile
 
         # 设置提示文字
         self.setToolTip("TeXFE - 数学公式截图")
 
         # 创建右键菜单
         self.menu = QMenu()
+
+        # 新增菜单项
+        action_mobile = QAction("手机拍照 (Alt+M)", self)
+        action_mobile.triggered.connect(self.trigger_mobile)
+        self.menu.addAction(action_mobile)  # 插在最前面
 
         # 截图动作
         action_capture = QAction("截图 (Alt+Q)", self)
@@ -41,6 +45,10 @@ class FoxTray(QSystemTrayIcon):
     def trigger_capture(self):
         if self.on_capture:
             self.on_capture()
+
+    def trigger_mobile(self):
+        if self.on_mobile:
+            self.on_mobile()
 
     def on_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:

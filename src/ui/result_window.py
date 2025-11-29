@@ -60,7 +60,7 @@ class ResultWindow(QWidget):
 
     def handle_js_command(self, title):
         """处理来自 HTML 按钮的指令"""
-        if title == "CMD:CLOSE":
+        if title.startswith == "CMD:CLOSE":
             self.hide()
 
         elif title.startswith("CMD:COPY:"):
