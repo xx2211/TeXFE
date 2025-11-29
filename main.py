@@ -48,8 +48,8 @@ def main():
 
             if latex and "错误" not in latex:
                 # ✅ 获取当前鼠标位置，让浮窗出现在鼠标旁边
-                mouse_pos = QCursor.pos()
-                result_window.set_content(latex, mouse_pos)
+                # mouse_pos = QCursor.pos()
+                result_window.set_content(latex)
 
         except Exception as e:
             print(f"❌ 异常: {e}")

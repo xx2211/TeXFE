@@ -2,130 +2,197 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            font-family: sans-serif;
-            background-color: white;
+            margin: 0; padding: 0; height: 100vh;
+            display: flex; flex-direction: column;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #ffffff;
             overflow: hidden;
+            user-select: none;
         }
 
-        /* 上半部分：渲染区 */
-        #render-container {
-            flex: 1;
+        /* --- 顶部工具栏 --- */
+        #header {
+            height: 40px;
+            background-color: #fcfcfc;
+            border-bottom: 1px solid #e0e0e0;
             display: flex;
-            justify-content: center;
             align-items: center;
-            overflow: auto;
-            border-bottom: 1px solid #ccc;
-            background-color: #fff;
+            padding: 0 12px;
+            gap: 12px;
+            flex-shrink: 0; /* 防止被挤压 */
         }
 
-        /* MathJax 容器样式 */
-        mjx-container {
-            font-size: 200% !important; /* 调整显示大小 */
-            outline: none;
-        }
+        .brand { font-weight: 600; color: #888; font-size: 13px; margin-right: auto; }
 
-        /* 下半部分：输入区 */
-        #input-area {
-            height: 120px;
+        .btn {
+            border: 1px solid transparent; background: transparent; border-radius: 4px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            padding: 4px 8px; font-size: 13px; color: #555; transition: all 0.2s;
+        }
+        .btn:hover { background-color: #eef; color: #333; }
+
+        .btn-switch svg { width: 16px; height: 16px; fill: #666; margin-right: 4px; }
+        .btn-switch:hover svg { fill: #0078d7; }
+
+        .btn-copy { border-color: #ddd; background: white; }
+        .btn-copy:hover { border-color: #0078d7; color: #0078d7; }
+
+        .btn-close:hover { background-color: #ffeaea; color: red; }
+
+        /* --- 源码输入框 (MathJax模式专用) --- */
+        #input-wrapper {
             padding: 10px;
-            box-sizing: border-box;
-            background-color: #f9f9f9;
+            background: #f9f9f9;
+            border-top: 1px solid #eee;
+            flex-shrink: 0;
+            /* ✅ 修复：默认显示，不要 display: none */
+        }
+        #code-input {
+            width: 100%; height: 28px; padding: 4px 8px; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 4px;
+            font-family: Consolas, monospace; font-size: 14px; outline: none;
+        }
+        #code-input:focus { border-color: #0078d7; background: white; }
+
+        /* --- 主区域 --- */
+        #main-area {
+            flex: 1; position: relative; overflow: auto;
+            display: flex; justify-content: center; align-items: center;
         }
 
-        textarea {
-            width: 100%;
-            height: 100%;
-            resize: none;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 8px;
-            font-family: Consolas, Monospace;
-            font-size: 14px;
-            outline: none;
-        }
+        /* 通用隐藏类 */
+        .hidden { display: none !important; }
 
-        textarea:focus {
-            border-color: #0078d7;
+        /* MathJax 样式 */
+        mjx-container { font-size: 250% !important; outline: none; }
+
+        /* MathLive 样式 */
+        math-field {
+            width: 100%; font-size: 32px; padding: 20px;
+            border: none; outline: none; background: transparent; text-align: center;
         }
+        math-field::part(virtual-keyboard-toggle) { display: none; }
     </style>
 
+    <script src="mathlive.min.js"></script>
     <script>
         window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$']],
-                displayMath: [['\\[', '\\]']],
-                packages: {'[+]': ['base', 'ams', 'noundefined']}
-            },
-            svg: {
-                fontCache: 'global'
-            },
-            startup: {
-                typeset: false // 手动触发渲染
-            }
+            tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']] },
+            svg: { fontCache: 'global' },
+            startup: { typeset: false }
         };
     </script>
-
     <script src="mathjax.js"></script>
 </head>
 <body>
 
-    <div id="render-container">
-        <div id="math-output"></div>
+    <div id="header">
+        <span class="brand">FoxTeX</span>
+
+<!--        <button class="btn btn-switch" onclick="toggleMode()" title="开启/关闭mathlive模式">-->
+<!--            <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>-->
+<!--&lt;!&ndash;            <span id="mode-text">编辑</span>&ndash;&gt;-->
+<!--        </button>-->
+
+        <button class="btn btn-copy" onclick="doCopy()">复制</button>
+        <button class="btn btn-close" onclick="doClose()">✕</button>
     </div>
 
-    <div id="input-area">
-        <textarea id="latex-input" placeholder="等待识别..."></textarea>
+    <div id="main-area">
+        <div id="view-mathjax">
+            <div id="math-output"></div>
+        </div>
+        <div id="view-mathlive" class="hidden">
+            <math-field id="mf" virtual-keyboard-mode="onfocus"></math-field>
+        </div>
+    </div>
+
+    <div id="input-wrapper">
+        <input type="text" id="code-input" placeholder="LaTeX 源码..." spellcheck="false">
     </div>
 
     <script>
-        const inputEl = document.getElementById('latex-input');
-        const outputEl = document.getElementById('math-output');
+        const els = {
+            input: document.getElementById('code-input'),
+            inputWrapper: document.getElementById('input-wrapper'),
+            output: document.getElementById('math-output'),
+            jaxBox: document.getElementById('view-mathjax'),
+            liveBox: document.getElementById('view-mathlive'),
+            mf: document.getElementById('mf'),
+            modeText: document.getElementById('mode-text')
+        };
 
-        // 核心渲染函数
-        function render() {
-            const latex = inputEl.value.trim();
-            if (!latex) {
-                outputEl.innerHTML = "";
-                return;
+        let currentMode = 'mathjax';
+
+        function renderMathJax() {
+            els.output.innerHTML = '\\[' + els.input.value + '\\]';
+            if (window.MathJax) MathJax.typesetPromise([els.output]).catch(()=>{});
+        }
+
+        function updateUI() {
+            if (currentMode === 'mathjax') {
+                els.liveBox.classList.add('hidden');
+                els.jaxBox.classList.remove('hidden');
+                els.inputWrapper.classList.remove('hidden'); // ✅ 确保 MathJax 模式下输入框显示
+                els.modeText.innerText = "编辑"; // 按钮提示去编辑模式
+            } else {
+                els.jaxBox.classList.add('hidden');
+                els.inputWrapper.classList.add('hidden'); // MathLive 模式下隐藏输入框
+                els.liveBox.classList.remove('hidden');
+                els.modeText.innerText = "预览"; // 按钮提示回预览模式
             }
+        }
 
-            // 构造 HTML：使用 \[ ... \] 强制展示模式
-            outputEl.innerHTML = '\\[ ' + latex + ' \\]';
+        // --- 事件监听 ---
+        els.input.addEventListener('input', () => {
+            renderMathJax();
+            els.mf.value = els.input.value;
+        });
 
-            // 通知 MathJax 重新渲染
-            if (window.MathJax && window.MathJax.typesetPromise) {
-                MathJax.typesetPromise([outputEl]).catch((err) => console.log(err));
+        els.mf.addEventListener('input', () => {
+            els.input.value = els.mf.value;
+        });
+
+        // --- 功能函数 ---
+        function toggleMode() {
+            currentMode = (currentMode === 'mathjax') ? 'mathlive' : 'mathjax';
+
+            // 同步数据
+            if (currentMode === 'mathjax') {
+                els.input.value = els.mf.value;
+                renderMathJax();
+            } else {
+                els.mf.value = els.input.value;
             }
+            updateUI();
         }
 
-        // ✅ 新增：点击网页，通知 Python
-        function notifyPython() {
-            // 这个 hack 很精妙：改变标题，Python 就能收到 titleChanged 信号
-            // 我们用时间戳防止标题一样不触发
-            document.title = "click_" + new Date().getTime();
+        function setLatex(latex) {
+            els.input.value = latex;
+            els.mf.value = latex;
+
+            // 默认重置回 MathJax 模式，或者保持当前模式
+            // 这里我们强制重置回 MathJax，保证每次截图都是预览状态
+            currentMode = 'mathjax';
+            renderMathJax();
+            updateUI();
         }
 
-        // 监听输入，实时渲染
-        inputEl.addEventListener('input', render);
-
-        // ✅ Python 调用的接口：设置内容
-        function setContent(latex) {
-            inputEl.value = latex;
-            render();
+        function doCopy() {
+            const content = currentMode === 'mathjax' ? els.input.value : els.mf.value;
+            document.title = "CMD:COPY:" + content;
         }
 
-        // ✅ Python 调用的接口：获取内容
-        function getContent() {
-            return inputEl.value;
+        function doClose() {
+            document.title = "CMD:CLOSE";
         }
+
+        // ✅ 初始化时强制刷新一次 UI 状态
+        window.addEventListener('DOMContentLoaded', () => {
+            updateUI();
+        });
     </script>
 </body>
 </html>
