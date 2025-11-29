@@ -106,6 +106,13 @@
             }
         }
 
+        // ✅ 新增：点击网页，通知 Python
+        function notifyPython() {
+            // 这个 hack 很精妙：改变标题，Python 就能收到 titleChanged 信号
+            // 我们用时间戳防止标题一样不触发
+            document.title = "click_" + new Date().getTime();
+        }
+
         // 监听输入，实时渲染
         inputEl.addEventListener('input', render);
 

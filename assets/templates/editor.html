@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            margin: 0; padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f9f9f9;
+            overflow: hidden;
+        }
+
+        /* --- 1. 顶部公式栏 (类似 Excel) --- */
+        #toolbar {
+            height: 50px;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 100; /* 保证在最上层 */
+        }
+
+        /* 源码预览/编辑框 */
+        #code-input {
+            flex: 1; /* 占满剩余空间 */
+            height: 32px;
+            border: 1px solid #e0e0e0;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            padding: 0 10px;
+            font-family: Consolas, monospace;
+            font-size: 14px;
+            color: #333;
+            outline: none;
+            transition: border 0.2s, background 0.2s;
+        }
+        #code-input:focus {
+            border-color: #0078d7;
+            background-color: white;
+        }
+
+        /* 按钮组 */
+        button {
+            height: 32px;
+            padding: 0 15px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+
+        .btn-copy {
+            background-color: #0078d7;
+            color: white;
+        }
+        .btn-copy:hover { background-color: #0063b1; }
+
+        .btn-close {
+            background-color: transparent;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .btn-close:hover {
+            background-color: #eee;
+            color: #333;
+        }
+
+        /* --- 2. 主可视区域 --- */
+        #visual-editor {
+            flex: 1; /* 填满剩下的高度 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            position: relative;
+        }
+
+        math-field {
+            width: 100%;
+            font-size: 36px;
+            padding: 20px;
+            /* 去掉边框，让它看起来像是在画布上 */
+            border: none;
+            outline: none;
+            background: transparent;
+            text-align: center;
+        }
+
+        /* 调整虚拟键盘的位置，防止它遮挡公式太厉害 */
+        /* MathLive 默认会把 body 推上去，这种布局下没问题 */
+
+    </style>
+    <script src="mathlive.min.js" defer></script>
+</head>
+<body>
+
+    <div id="toolbar">
+        <input type="text" id="code-input" placeholder="LaTeX 源码..." spellcheck="false">
+        <button class="btn-copy" onclick="doCopy()">复制</button>
+        <button class="btn-close" onclick="doClose()">关闭</button>
+    </div>
+
+    <div id="visual-editor">
+        <math-field id="mf" virtual-keyboard-mode="onfocus"></math-field>
+    </div>
+
+    <script>
+        let mf = null;
+        let codeInput = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            mf = document.getElementById('mf');
+            codeInput = document.getElementById('code-input');
+
+            // 1. MathLive 变动 -> 同步到顶部输入框
+            mf.addEventListener('input', (ev) => {
+                codeInput.value = mf.value;
+            });
+
+            // 2. 顶部输入框变动 -> 同步到 MathLive
+            codeInput.addEventListener('input', (ev) => {
+                mf.value = codeInput.value;
+            });
+        });
+
+        // --- 核心逻辑 ---
+
+        function setLatex(latex) {
+            if (mf && codeInput) {
+                mf.value = latex;
+                codeInput.value = latex;
+            } else {
+                setTimeout(() => setLatex(latex), 50);
+            }
+        }
+
+        function getLatex() {
+            return mf ? mf.value : "";
+        }
+
+        function doCopy() {
+            const content = mf ? mf.value : "";
+            // 发送给 Python
+            document.title = "CMD:COPY:" + new Date().getTime() + ":" + content;
+        }
+
+        function doClose() {
+            document.title = "CMD:CLOSE:" + new Date().getTime();
+        }
+    </script>
+</body>
+</html>
