@@ -1,7 +1,6 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
-from PyQt6.QtGui import QCursor
 
 from src.config import AppConfig
 from src.core.factory import create_engine
@@ -9,8 +8,8 @@ from src.ui.result_window import ResultWindow
 from src.ui.tray import FoxTray
 
 # 引入两个干净的 Source
-from src.sources.screen_source import SnipperManager  # 这个本质上就是 ScreenSource
-from src.sources.mobile_source import MobileSource  # ✅ 新写的封装类
+from src.sources.screen_source import SnipperManager
+from src.sources.mobile_source import MobileSource
 
 import keyboard
 import pyperclip
@@ -75,11 +74,19 @@ def main():
         on_mobile=lambda: bridge.trigger_mobile.emit()
     )
 
-    # 键盘监听 (后台线程)
-    keyboard.add_hotkey(cfg.HOTKEY_SNIP, lambda: bridge.trigger_snipper.emit())
-    keyboard.add_hotkey(cfg.HOTKEY_MOBILE, lambda: bridge.trigger_mobile.emit())
+    # 热键注册（添加错误处理）
+    try:
+        keyboard.add_hotkey(cfg.HOTKEY_SNIP, lambda: bridge.trigger_snipper.emit())
+        keyboard.add_hotkey(cfg.HOTKEY_MOBILE, lambda: bridge.trigger_mobile.emit())
+    except Exception as e:
+        print(f"❌ 热键注册失败: {e}")
+        # 可以显示系统通知
+        tray.show_message("热键注册失败", "请检查热键是否被其他程序占用")
 
-    print(f"🚀 TeXFE 启动成功")
+    print(f"🚀 TeXFE 启动成功!")
+    print(f"   截图识别: {cfg.HOTKEY_SNIP}")
+    print(f"   拍照识别: {cfg.HOTKEY_MOBILE}")
+
     sys.exit(app.exec())
 
 
