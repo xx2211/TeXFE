@@ -81,11 +81,10 @@ def main():
     except Exception as e:
         print(f"❌ 热键注册失败: {e}")
         # 可以显示系统通知
-        tray.show_message("热键注册失败", "请检查热键是否被其他程序占用")
+        tray.showMessage("热键注册失败", "请检查热键是否被其他程序占用")
 
-    print(f"🚀 TeXFE 启动成功!")
-    print(f"   截图识别: {cfg.HOTKEY_SNIP}")
-    print(f"   拍照识别: {cfg.HOTKEY_MOBILE}")
+    tray.showMessage('🚀 TeXFE 启动成功!', f'截图识别: {cfg.HOTKEY_SNIP}\n拍照识别: {cfg.HOTKEY_MOBILE}')
+    print('🚀 TeXFE 启动成功!', f'截图识别: {cfg.HOTKEY_SNIP}\n拍照识别: {cfg.HOTKEY_MOBILE}')
 
     sys.exit(app.exec())
 

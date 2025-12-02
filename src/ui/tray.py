@@ -13,18 +13,18 @@ class FoxTray(QSystemTrayIcon):
         self.on_mobile = on_mobile
 
         # 设置提示文字
-        self.setToolTip("TeXFE - 数学公式截图")
+        self.setToolTip("TeXFE - 数学公式识别")
 
         # 创建右键菜单
         self.menu = QMenu()
 
         # 新增菜单项
-        action_mobile = QAction("手机拍照 (Alt+M)", self)
+        action_mobile = QAction("拍照识别 (Alt+M)", self)
         action_mobile.triggered.connect(self.trigger_mobile)
         self.menu.addAction(action_mobile)  # 插在最前面
 
         # 截图动作
-        action_capture = QAction("截图 (Alt+Q)", self)
+        action_capture = QAction("截图识别 (Alt+Q)", self)
         action_capture.triggered.connect(self.trigger_capture)
         self.menu.addAction(action_capture)
 

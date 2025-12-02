@@ -1,21 +1,32 @@
-主要功能：
+#### 主要功能：
 1. 截取屏幕区域识别公式
 2. 手机扫码上传图片,电脑端编辑选取区域识别公式
 3. 编辑、预览识别结果
 
-使用：
+#### 环境
 
-运行环境：python解释器版本： 3.10  64位, 可以使用conda创建python环境
+操作系统:     windows11
+  (linux或其他版本的windows系统可自行测试)
 
+python环境:  python3.10 64位
+
+#### 通过可执行文件运行
+0. 下载release中的压缩包
+1. 解压后双击 TeXFE.exe即可运行
+
+
+#### 通过python源码运行
+0. 执行``克隆项目到本地, 然后执行`cd TeXFE`进入项目目录
 1. 执行 `pip install -r requirements.txt` 安装依赖
 2. 执行 `python main.py` 启动程序
 3. 启动后可以通过 1)托盘图标 或 2)快捷键alt+q、alt+m识别公式
 
-to do:
-1. 把推理移出ui线程
-2. 识别过程中提示用户等待
-3. 重构source模块
+#### 通过python源码打包
 
-to fix:
-1. 公式编辑预览界面的x按钮有时会失灵
-2. 无论何时手机端提交照片电脑端都会弹出编辑照片页面,理论上只有在等待图片状态才弹出。不必关闭服务器，加一个状态判定即可，可以通过qr_window的状态来判定，也可以统一管理新的状态。
+1. 执行 `pip install -r requirements.txt` 安装项运行所需依赖
+2. 执行 `pip install requests onnx` 安装打包所需依赖
+2. 执行 `pip install pyinstaller` 安装打包工具
+3. 执行 `pyinstaller TeXFE.spec` 进行打包
+4. 打包生成的文件在dist目录下
+
+
