@@ -1,5 +1,5 @@
 import sys
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QWidget
 from PyQt6.QtCore import Qt, QObject, pyqtSignal
 
 from src.config import AppConfig
@@ -11,7 +11,9 @@ from src.ui.tray import FoxTray
 from src.sources.screen_source import SnipperManager
 from src.sources.mobile_source import MobileSource
 
-import keyboard
+from PyQt6.QtGui import QKeySequence
+from src.ui.hotkey import GlobalHotKey, MOD_ALT
+
 import pyperclip
 
 
@@ -76,15 +78,24 @@ def main():
 
     # 热键注册（添加错误处理）
     try:
-        keyboard.add_hotkey(cfg.HOTKEY_SNIP, lambda: bridge.trigger_snipper.emit())
-        keyboard.add_hotkey(cfg.HOTKEY_MOBILE, lambda: bridge.trigger_mobile.emit())
+        hotkey_manger = GlobalHotKey(app)
+        dummy_window = QWidget()  # 创建一个空窗口
+        hwnd = dummy_window.winId()  # 用它的 ID
+        hotkey_manger.register(hwnd, MOD_ALT, ord('Q'))
+        hotkey_manger.register(hwnd, MOD_ALT, ord('M'))
+        def handle_hotkey(hid):
+            if hid == 1:
+                bridge.trigger_snipper.emit()
+            elif hid == 2:
+                bridge.trigger_mobile.emit()
+        hotkey_manger.activated.connect(handle_hotkey)
     except Exception as e:
         print(f"❌ 热键注册失败: {e}")
         # 可以显示系统通知
         tray.showMessage("热键注册失败", "请检查热键是否被其他程序占用")
 
     tray.showMessage('🚀 TeXFE 启动成功!', f'截图识别: {cfg.HOTKEY_SNIP}\n拍照识别: {cfg.HOTKEY_MOBILE}')
-    print('🚀 TeXFE 启动成功!', f'截图识别: {cfg.HOTKEY_SNIP}\n拍照识别: {cfg.HOTKEY_MOBILE}')
+    print('🚀 TeXFE 启动成功!', f'截图识别: {cfg.HOTKEY_SNIP} 拍照识别: {cfg.HOTKEY_MOBILE}')
 
     sys.exit(app.exec())
 
