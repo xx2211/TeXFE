@@ -11,7 +11,7 @@
 python环境:  python3.10 64位
 
 #### 通过可执行文件运行
-0. 下载release中的压缩包
+0. 下载release中的压缩包TeXFE-vx.xx.zip
 1. 解压后双击 TeXFE.exe即可运行
 
 
