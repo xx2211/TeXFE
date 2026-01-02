@@ -26,7 +26,7 @@
 python环境:  python3.10 64位
 
 #### 通过可执行文件运行
-1. 下载release中的压缩包TeXFE-vx.xx.zip
+1. 下载  [release](https://github.com/xx2211/TeXFE/releases) 中的压缩包TeXFE-vx.xx.zip
 2. 解压后双击 TeXFE.exe即可运行
 3. 启动后可以通过 1)托盘图标 或 2)快捷键alt+q、alt+m识别公式
 
