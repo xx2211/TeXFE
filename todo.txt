@@ -1,6 +1,9 @@
 
 to do:
-0. 热键功能改用Qt6实现(底层调用windows api), 移出keyboard库(包含hook)，避免杀毒软件误报
+0. 处理跨平台问题
+    0.1 热键改用 qhotkey, 目前用了windows api
+    0.2 剪贴板非windows平台需要额外依赖。
+    0.3 多屏幕不同平台处理方式可能不同
 3. 重构source模块
 4. app单例
 
