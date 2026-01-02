@@ -1,6 +1,6 @@
 ## TexFE - 公式识别工具
 
-基于深度学习的离线公式识别工具，Mathpix的开源替代方案。支持windows截图识别以及手机拍照联动。
+基于rapid-latex-ocr的离线公式识别工具，Mathpix的开源替代方案。支持windows截图识别以及手机拍照联动。
 
 #### 为什么选择TexFE
 
