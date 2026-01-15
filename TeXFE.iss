@@ -31,24 +31,26 @@ ArchitecturesAllowed=x64compatible
 ; the 64-bit view of the registry.
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
-LicenseFile=D:\download\LICENSE (1).txt
+LicenseFile=LICENSE
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
-OutputDir=D:\fake_c
-OutputBaseFilename=TeXFE_Setup_v0.98
+OutputDir=installer
+OutputBaseFilename=TeXFE_Setup_v{#MyAppVersion}
+
 SolidCompression=yes
 WizardStyle=modern dynamic
 
 [Languages]
 Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
-Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkablealone
 
 [Files]
-Source: "D:\download\TeXFE-v0.98\TeXFE\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\download\TeXFE-v0.98\TeXFE\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "dist\TeXFE\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\TeXFE\_internal\*"; DestDir: "{app}\_internal"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -57,4 +59,3 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
-
