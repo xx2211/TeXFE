@@ -101,9 +101,12 @@ def main():
 
     # --- 5. 热键 ---
     try:
-        ctx.hotkey_manager = GlobalHotKey(app)
-        dummy = QWidget()
-        hwnd = dummy.winId()
+        # 创建并持有一个隐藏的 QWidget 用来提供 HWND（防止被回收）
+        ctx.hotkey_window = QWidget()
+        ctx.hotkey_window.hide()  # 不显示窗口，但保持对象存活
+
+        # 获取原生句柄（在 Windows 上用于 RegisterHotKey）
+        hwnd = int(ctx.hotkey_window.winId())
         ctx.hotkey_manager.register(hwnd, MOD_ALT, ord('Q'))
         ctx.hotkey_manager.register(hwnd, MOD_ALT, ord('M'))
 
